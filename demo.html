@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Placement Management System</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .header-title { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card-header-form { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); color: white; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .card-header-table { background: linear-gradient(135deg, #232526 0%, #414345 100%); color: white; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container py-4">
+    <!-- Header Banner -->
+    <!-- Header Banner -->
+<div class="header-title mb-4">
+  <div class="d-flex gap-2 mb-3 border-bottom pb-2 border-white-50">
+    <a href="demo.html" class="btn btn-sm btn-outline-light active">Candidates</a>
+    <a href="apply.html" class="btn btn-sm btn-outline-light">Job Portal</a>
+    <a href="company.html" class="btn btn-sm btn-outline-light">Recruiter Portal</a>
+    <a href="analytics.html" class="btn btn-sm btn-outline-light">Analytics Dashboard</a>
+  </div>
+  <div>
+    <h1 class="fw-bold m-0"><i class="fa-solid fa-graduation-cap me-2"></i>Candidate Directory</h1>
+    <p class="m-0 mt-1 opacity-75">Register candidates and manage academic profiles</p>
+  </div>
+</div>
+
+    <!-- Alert Banner -->
+    <div id="statusAlert" class="alert alert-dismissible fade show d-none" role="alert">
+      <span id="alertMessage"></span>
+      <button type="button" class="btn-close" onclick="hideAlert()"></button>
+    </div>
+
+    <div class="row g-4">
+      <!-- Candidate Registration Form -->
+      <div class="col-lg-4">
+        <div class="card card-custom">
+          <div class="card-header card-header-form py-3">
+            <i class="fa-solid fa-user-plus me-2"></i>Register New Candidate
+          </div>
+          <div class="card-body p-4">
+            <form id="studentForm">
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Roll Number</label>
+                <input type="text" id="rollno" class="form-control" placeholder="e.g. 26075A6704" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Full Name</label>
+                <input type="text" id="name" class="form-control" placeholder="e.g. Rahul Sharma" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Branch</label>
+                <select id="branch" class="form-select">
+                  <option value="AIDS">AIDS</option>
+                  <option value="CSBS">CSBS</option>
+                  <option value="CSE">CSE</option>
+                  <option value="CSM">CSM</option>
+                  <option value="CSD">CSD</option>
+                  <option value="CYS">CYS</option>
+                  <option value="IOT">IOT</option>
+                  <option value="R&AI">R&AI</option>
+                  <option value="IT">IT</option>
+                  <option value="EEE">EEE</option>
+                  <option value="ECE">ECE</option>
+                  <option value="EVL">EVL</option>
+                  <option value="MECH">MECH</option>
+                  <option value="CIVIL">CIVIL</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">CGPA</label>
+                <input type="number" step="0.01" min="0" max="10" id="cgpa" class="form-control" placeholder="8.50" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Backlogs</label>
+                <input type="number" min="0" id="backlogs" class="form-control" value="0" required>
+              </div>
+              <button type="submit" id="submitBtn" class="btn btn-gradient w-100 py-2 mt-2">
+                <i class="fa-solid fa-paper-plane me-2"></i>Register Candidate
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Candidate List Table -->
+      <div class="col-lg-8">
+        <div class="card card-custom">
+          <div class="card-header card-header-table py-3 d-flex justify-content-between align-items-center">
+            <span><i class="fa-solid fa-users me-2"></i>Registered Candidates</span>
+            <button onclick="fetchStudents()" class="btn btn-sm btn-outline-light">
+              <i class="fa-solid fa-rotate me-1"></i> Refresh
+            </button>
+          </div>
+          <div class="card-body p-3">
+            <div class="row mb-3 g-2">
+              <div class="col-md-8">
+                <div class="input-group">
+                  <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                  <input type="text" id="searchInput" onkeyup="filterTable()" class="form-control" placeholder="Search by Roll No, Name, or Branch...">
+                </div>
+              </div>
+              <div class="col-md-4 text-end">
+                <span id="totalBadge" class="badge bg-primary fs-6 py-2 px-3">Records: 0</span>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="candidateTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>Branch</th>
+                    <th>CGPA</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                      <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+                      Fetching candidates from Supabase...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Embedded Credentials (Trimmed whitespace and formatted on single lines)
+    const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let allCandidates = [];
+
+    async function fetchStudents() {
+      const tbody = document.getElementById('studentTableBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary"></div>Loading database records...</td></tr>';
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('Student')
+          .select('*')
+          .order('student_id', { ascending: true });
+
+        if (error) throw error;
+
+        allCandidates = data || [];
+        renderTable(allCandidates);
+      } catch (err) {
+        console.error('Fetch Error:', err);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Error loading records:</strong> ' + (err.message || 'Check database connectivity or RLS policy.') + '</td></tr>';
+        showAlert('Error fetching data: ' + err.message, 'danger');
+      }
+    }
+
+    function renderTable(candidates) {
+      const tbody = document.getElementById('studentTableBody');
+      document.getElementById('totalBadge').innerText = 'Records: ' + candidates.length;
+
+      if (candidates.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No candidate records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = candidates.map(function(s) {
+        return '<tr>' +
+          '<td><span class="fw-bold text-primary">' + (s.rollno || 'N/A') + '</span></td>' +
+          '<td><span class="fw-semibold text-dark">' + s.name + '</span></td>' +
+          '<td><span class="badge bg-light text-dark border">' + s.branch + '</span></td>' +
+          '<td><span class="fw-bold ' + (s.cgpa >= 8 ? 'text-success' : 'text-dark') + '">' + s.cgpa + '</span></td>' +
+          '<td><span class="badge ' + (s.is_placed ? 'bg-success' : 'bg-warning text-dark') + '"><i class="fa-solid ' + (s.is_placed ? 'fa-check-circle' : 'fa-clock') + ' me-1"></i>' + (s.is_placed ? 'Placed' : 'Eligible') + '</span></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function filterTable() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allCandidates.filter(function(c) {
+        const r = c.rollno ? c.rollno.toLowerCase() : '';
+        const n = c.name ? c.name.toLowerCase() : '';
+        const b = c.branch ? c.branch.toLowerCase() : '';
+        return r.indexOf(query) !== -1 || n.indexOf(query) !== -1 || b.indexOf(query) !== -1;
+      });
+      renderTable(filtered);
+    }
+
+    document.getElementById('studentForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+
+      const newCandidate = {
+        rollno: document.getElementById('rollno').value.trim(),
+        name: document.getElementById('name').value.trim(),
+        branch: document.getElementById('branch').value,
+        cgpa: parseFloat(document.getElementById('cgpa').value),
+        backlogs: parseInt(document.getElementById('backlogs').value),
+        is_placed: false
+      };
+
+      try {
+        const { error } = await supabaseClient.from('Student').insert([newCandidate]);
+        if (error) throw error;
+
+        showAlert('Candidate "' + newCandidate.name + '" (' + newCandidate.rollno + ') successfully registered!', 'success');
+        document.getElementById('studentForm').reset();
+        fetchStudents();
+      } catch (err) {
+        showAlert('Registration Failed: ' + err.message, 'danger');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showAlert(msg, type) {
+      const alertBox = document.getElementById('statusAlert');
+      const alertMsg = document.getElementById('alertMessage');
+      alertBox.className = 'alert alert-' + type + ' alert-dismissible fade show';
+      alertMsg.innerText = msg;
+      alertBox.classList.remove('d-none');
+    }
+
+    function hideAlert() {
+      document.getElementById('statusAlert').classList.add('d-none');
+    }
+
+    // Initial Fetch
+    fetchStudents();
+  </script>
+</body>
+</html>

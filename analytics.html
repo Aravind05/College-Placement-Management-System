@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placement Analytics Dashboard - College Placement Management System</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .header-title { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card-header-table { background: linear-gradient(135deg, #232526 0%, #414345 100%); color: white; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; color: white; }
+    .stat-card:hover { transform: translateY(-3px); }
+  </style>
+</head>
+<body>
+
+  <div class="container py-4">
+    <!-- Header Navigation Banner -->
+    <div class="header-title mb-4">
+      <div class="d-flex gap-2 mb-3 border-bottom pb-2 border-white-50">
+        <a href="demo.html" class="btn btn-sm btn-outline-light">Candidates</a>
+        <a href="apply.html" class="btn btn-sm btn-outline-light">Job Portal</a>
+        <a href="company.html" class="btn btn-sm btn-outline-light">Recruiter Portal</a>
+        <a href="analytics.html" class="btn btn-sm btn-outline-light active">Analytics Dashboard</a>
+      </div>
+      <div>
+        <h1 class="fw-bold m-0"><i class="fa-solid fa-chart-line me-2"></i>Placement Analytics Dashboard</h1>
+        <p class="m-0 mt-1 opacity-75">Real-time placement reports & application tracking</p>
+      </div>
+    </div>
+
+    <!-- Top KPI Metrics Counters -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card stat-card bg-primary p-3 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-uppercase fw-semibold opacity-75">Total Candidates</small>
+              <h2 id="lblTotalCandidates" class="fw-bold m-0 mt-1">0</h2>
+            </div>
+            <i class="fa-solid fa-user-graduate fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card bg-success p-3 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-uppercase fw-semibold opacity-75">Placed Students</small>
+              <h2 id="lblPlacedStudents" class="fw-bold m-0 mt-1">0</h2>
+            </div>
+            <i class="fa-solid fa-circle-check fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card bg-info p-3 shadow-sm text-dark">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-uppercase fw-semibold opacity-75">Active Drives</small>
+              <h2 id="lblTotalDrives" class="fw-bold m-0 mt-1">0</h2>
+            </div>
+            <i class="fa-solid fa-briefcase fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stat-card bg-danger p-3 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-uppercase fw-semibold opacity-75">Total Applications</small>
+              <h2 id="lblTotalApps" class="fw-bold m-0 mt-1">0</h2>
+            </div>
+            <i class="fa-solid fa-paper-plane fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Candidate Applications Log Table -->
+    <div class="card card-custom">
+      <div class="card-header card-header-table py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span><i class="fa-solid fa-list-check me-2"></i>Live Candidate Applications Log</span>
+        
+        <!-- Controls: Search, Refresh & CSV Export -->
+        <div class="d-flex gap-2">
+          <input type="text" id="searchInput" onkeyup="filterApplications()" class="form-control form-control-sm" placeholder="Search candidate or role..." style="max-width: 200px;">
+          <button onclick="exportToCSV()" class="btn btn-sm btn-success">
+            <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+          </button>
+          <button onclick="loadAnalyticsData()" class="btn btn-sm btn-outline-light">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle m-0" id="analyticsTable">
+            <thead class="table-light">
+              <tr>
+                <th>App ID</th>
+                <th>Candidate Name</th>
+                <th>Branch</th>
+                <th>Role Applied</th>
+                <th>Company</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="applicationsTableBody">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  <div class="spinner-border spinner-border-sm me-2 text-primary"></div> Loading application records...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let applicationRecords = [];
+
+    async function loadAnalyticsData() {
+      try {
+        const [studentRes, jobRes, appRes, companyRes] = await Promise.all([
+          supabaseClient.from('Student').select('*'),
+          supabaseClient.from('job').select('*'),
+          supabaseClient.from('application').select('*').order('application_id', { ascending: false }),
+          supabaseClient.from('company').select('*')
+        ]);
+
+        if (studentRes.error) throw studentRes.error;
+        if (jobRes.error) throw jobRes.error;
+        if (appRes.error) throw appRes.error;
+
+        const students = studentRes.data || [];
+        const jobs = jobRes.data || [];
+        const applications = appRes.data || [];
+        const companies = companyRes.data || [];
+
+        const placedCount = students.filter(s => s.is_placed === true).length;
+
+        document.getElementById('lblTotalCandidates').innerText = students.length;
+        document.getElementById('lblPlacedStudents').innerText = placedCount;
+        document.getElementById('lblTotalDrives').innerText = jobs.length;
+        document.getElementById('lblTotalApps').innerText = applications.length;
+
+        // Map combined data into central array
+        applicationRecords = applications.map(app => {
+          const student = students.find(s => s.student_id === app.student_id) || {};
+          const job = jobs.find(j => j.job_id === app.job_id) || {};
+          const company = companies.find(c => c.company_id === job.company_id) || {};
+
+          return {
+            app_id: app.application_id,
+            student_name: student.name || 'Candidate #' + app.student_id,
+            branch: student.branch || 'N/A',
+            role: job.role || 'Job #' + app.job_id,
+            company_name: company.name || 'Company Drive',
+            status: app.status || 'Applied'
+          };
+        });
+
+        renderTable(applicationRecords);
+
+      } catch (err) {
+        console.error("Analytics Fetch Error:", err);
+        document.getElementById('applicationsTableBody').innerHTML = 
+          `<tr><td colspan="6" class="text-center text-danger py-4">Error loading records: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTable(records) {
+      const tableBody = document.getElementById('applicationsTableBody');
+
+      if (records.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No matching application records found.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = records.map(rec => {
+        let badgeClass = 'bg-info text-dark';
+        if (rec.status === 'Shortlisted') badgeClass = 'bg-warning text-dark';
+        if (rec.status === 'Selected') badgeClass = 'bg-success';
+        if (rec.status === 'Rejected') badgeClass = 'bg-danger';
+
+        return `
+          <tr>
+            <td><strong>#APP-${rec.app_id}</strong></td>
+            <td><strong class="text-dark">${rec.student_name}</strong></td>
+            <td><span class="badge bg-secondary">${rec.branch}</span></td>
+            <td><strong>${rec.role}</strong></td>
+            <td><span class="text-primary fw-semibold">${rec.company_name}</span></td>
+            <td><span class="badge ${badgeClass}">${rec.status}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterApplications() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = applicationRecords.filter(r => 
+        r.student_name.toLowerCase().includes(query) ||
+        r.role.toLowerCase().includes(query) ||
+        r.company_name.toLowerCase().includes(query) ||
+        r.branch.toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    }
+
+    function exportToCSV() {
+      if (applicationRecords.length === 0) {
+        alert("No application data available to export.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,Application ID,Candidate Name,Branch,Role Applied,Company,Status\n";
+      applicationRecords.forEach(r => {
+        csvContent += `"#APP-${r.app_id}","${r.student_name}","${r.branch}","${r.role}","${r.company_name}","${r.status}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "Placement_Analytics_Report.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    loadAnalyticsData();
+  </script>
+</body>
+</html>
