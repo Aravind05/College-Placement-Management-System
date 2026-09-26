@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - College Placement Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+      body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+      .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); background: #ffffff; }
+      .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
+      .btn-gradient:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                
+                <!-- Main Header / Welcome Box -->
+                <div class="text-center mb-4">
+                    <h1 class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap text-primary me-2"></i>Placement Portal</h1>
+                    <p class="text-muted">College Placement Management System</p>
+                </div>
+
+                <!-- Admin Login Card -->
+                <div class="card card-custom p-4">
+                    <div class="text-center mb-3">
+                        <h4 class="fw-bold text-secondary"><i class="fa-solid fa-lock me-2 text-primary"></i>Admin Access</h4>
+                        <p class="text-muted small">Sign in to unlock management and recruiter controls.</p>
+                    </div>
+                    
+                    <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary">Admin Email</label>
+                            <input type="email" id="adminEmail" class="form-control" placeholder="admin@college.edu" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary">Password</label>
+                            <input type="password" id="adminPassword" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-gradient w-100 py-2">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i> Secure Login
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Quick Navigation Links for Public Portals -->
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-2">Looking for public portals?</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="apply.html" class="btn btn-sm btn-outline-primary">Job Portal</a>
+                        <a href="demo.html" class="btn btn-sm btn-outline-secondary">Candidates</a>
+                        <a href="analytics.html" class="btn btn-sm btn-outline-dark">Analytics</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Authentication Logic Script -->
+    <script>
+        // Prevent duplicate declarations safely
+        if (typeof window.supabaseClient === 'undefined') {
+            const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+        const activeSupabase = window.supabaseClient;
+
+        // Handle Admin Login Logic
+        async function handleAdminLogin(event) {
+            event.preventDefault(); // Stop page from refreshing
+
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+
+            if (!email || !password) {
+                alert("Please enter both email and password.");
+                return;
+            }
+
+            try {
+                const { data, error } = await activeSupabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) throw error;
+
+                // Save secure session flag
+                sessionStorage.setItem("isAdminAuthenticated", "true");
+                alert("Login successful! Redirecting to dashboard.");
+                
+                // Redirect to your recruiter management page
+                window.location.href = "company.html";
+
+            } catch (err) {
+                alert("Authentication Failed: " + err.message);
+                console.error("Login Error:", err);
+            }
+        }
+    </script>
+
+</body>
+</html>
