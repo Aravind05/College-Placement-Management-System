@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Registration - College Placement Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+      body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+      .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); background: #ffffff; }
+      .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
+      .btn-gradient:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                
+                <!-- Main Header / Welcome Box -->
+                <div class="text-center mb-4">
+                    <h1 class="fw-bold text-dark"><i class="fa-solid fa-graduation-cap text-primary me-2"></i>Placement Portal</h1>
+                    <p class="text-muted">College Placement Management System</p>
+                </div>
+
+                <!-- Unified Access Card with 3 Tabs -->
+                <div class="card card-custom p-4">
+                    
+                    <!-- Role Selector Tabs (Student Login, Student Registration, Admin Login) -->
+                    <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded" id="loginTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-semibold py-2 small" id="student-login-tab" data-bs-toggle="tab" data-bs-target="#studentLogin" type="button" role="tab">Student Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold py-2 small" id="student-reg-tab" data-bs-toggle="tab" data-bs-target="#studentRegister" type="button" role="tab">New Registration</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-semibold py-2 small" id="admin-tab" data-bs-toggle="tab" data-bs-target="#adminLogin" type="button" role="tab">Admin Login</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="loginTabContent">
+                        
+                        <!-- 1. Student Login Form -->
+                        <div class="tab-pane fade show active" id="studentLogin" role="tabpanel">
+                            <div class="text-center mb-3">
+                                <h5 class="fw-bold text-secondary"><i class="fa-solid fa-right-to-bracket me-2 text-primary"></i>Existing Student Login</h5>
+                                <p class="text-muted small">Enter your registered roll number and full name.</p>
+                            </div>
+                            <form onsubmit="handleStudentLogin(event)">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Full Name</label>
+                                    <input type="text" id="loginName" class="form-control" placeholder="e.g. John Doe" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Roll Number</label>
+                                    <input type="text" id="loginRollNo" class="form-control" placeholder="e.g. 26075A6704" required style="text-transform: uppercase;">
+                                </div>
+                                <button type="submit" class="btn btn-gradient w-100 py-2">
+                                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Log In to Job Portal
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 2. New Student Registration Form -->
+                        <div class="tab-pane fade" id="studentRegister" role="tabpanel">
+                            <div class="text-center mb-3">
+                                <h5 class="fw-bold text-secondary"><i class="fa-solid fa-user-plus me-2 text-primary"></i>Candidate Registration</h5>
+                                <p class="text-muted small">Fill out all mandatory details to register your profile.</p>
+                            </div>
+                            <form onsubmit="handleStudentRegistration(event)">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Full Name</label>
+                                    <input type="text" id="regName" class="form-control" placeholder="e.g. John Doe" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Roll Number</label>
+                                    <input type="text" id="regRollNo" class="form-control" placeholder="e.g. 26075A6704" required style="text-transform: uppercase;">
+                                    <div class="form-text small text-muted">Roll number can contain at most 4 capital letters.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Branch</label>
+                                    <select id="regBranch" class="form-select" required>
+                                        <option value="">Select Branch</option>
+                                        <option value="AI&DS">AI&DS</option>
+                                        <option value="Civil">Civil</option>
+                                        <option value="CSBS">CSBS</option>
+                                        <option value="CSE">CSE</option>
+                                        <option value="CSD">CSD</option>
+                                        <option value="CYS">CYS</option>
+                                        <option value="ECE">ECE</option>
+                                        <option value="EEE">EEE</option>
+                                        <option value="IOT">IOT</option>
+                                        <option value="IT">IT</option>
+                                        <option value="Mechanical">Mechanical</option>
+                                   </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold text-secondary">CGPA</label>
+                                        <input type="number" step="0.01" min="0" max="10" id="regCgpa" class="form-control" placeholder="e.g. 8.5" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold text-secondary">Backlogs</label>
+                                        <input type="number" min="0" id="regBacklogs" class="form-control" placeholder="e.g. 0" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Placement Status (is_placed)</label>
+                                    <select id="regIsPlaced" class="form-select" required>
+                                        <option value="false">False (Not Placed)</option>
+                                        <option value="true">True (Already Placed)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Normalized Skills Checkbox Selector -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Your Skills (Select all that apply)</label>
+                                    <div id="regSkillsContainer" class="border p-3 rounded bg-light" style="max-height: 140px; overflow-y: auto;">
+                                        <span class="text-muted small">Loading available skills...</span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                                    <i class="fa-solid fa-check-circle me-1"></i> Register Profile & Login
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 3. Admin Login Form -->
+                        <div class="tab-pane fade" id="adminLogin" role="tabpanel">
+                            <div class="text-center mb-3">
+                                <h5 class="fw-bold text-secondary"><i class="fa-solid fa-lock me-2 text-primary"></i>Admin Access</h5>
+                                <p class="text-muted small">Sign in to unlock management and recruiter controls.</p>
+                            </div>
+                            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Admin Email</label>
+                                    <input type="email" id="adminEmail" class="form-control" placeholder="admin@college.edu" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-secondary">Password</label>
+                                    <input type="password" id="adminPassword" class="form-control" placeholder="••••••••" required>
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100 py-2">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> Secure Admin Login
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Quick Navigation Links for Public Portals -->
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-2">Looking for public portals?</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="apply.html" class="btn btn-sm btn-outline-primary">Job Portal</a>
+                        <a href="demo.html" class="btn btn-sm btn-outline-secondary">Candidates</a>
+                        <a href="analytics.html" class="btn btn-sm btn-outline-dark">Analytics</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Authentication & Registration Logic Script -->
+    <script>
+        if (typeof window.supabaseClient === 'undefined') {
+            const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+            window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+        const activeSupabase = window.supabaseClient;
+
+        let availableMasterSkills = [];
+
+        // Load master skills on page load so students can check off their tech stack
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMasterSkillsForRegistration();
+        });
+
+        async function loadMasterSkillsForRegistration() {
+            try {
+                const { data, error } = await activeSupabase
+                    .from('skills')
+                    .select('*')
+                    .order('skill_name', { ascending: true });
+
+                if (error) throw error;
+                availableMasterSkills = data || [];
+
+                const container = document.getElementById('regSkillsContainer');
+                if (!availableMasterSkills || availableMasterSkills.length === 0) {
+                    container.innerHTML = '<span class="text-muted small">No skills found in database master list.</span>';
+                    return;
+                }
+
+                container.innerHTML = availableMasterSkills.map(s => `
+                    <div class="form-check form-check-inline mb-2" style="min-width: 110px;">
+                        <input class="form-check-input reg-skill-checkbox" type="checkbox" value="${s.skill_id}" id="reg_skill_${s.skill_id}">
+                        <label class="form-check-label small fw-semibold text-dark" for="reg_skill_${s.skill_id}">
+                            ${s.skill_name}
+                        </label>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error loading master skills for registration:", err);
+            }
+        }
+
+        // 1. Existing Student Login Handler
+        async function handleStudentLogin(event) {
+            event.preventDefault();
+            const fullName = document.getElementById('loginName').value.trim();
+            const rollno = document.getElementById('loginRollNo').value.trim().toUpperCase();
+
+            if (!fullName || !rollno) {
+                alert("Please enter both your full name and roll number.");
+                return;
+            }
+
+            try {
+                // Check if student exists in database
+                let { data, error } = await activeSupabase
+                    .from('Student')
+                    .select('*')
+                    .eq('rollno', rollno)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!data) {
+                    alert("Roll number not found! Please register first using the 'New Registration' tab.");
+                    return;
+                }
+
+                // Verify session flags
+                sessionStorage.setItem("isStudentAuthenticated", "true");
+                sessionStorage.setItem("studentRollNo", data.rollno);
+                sessionStorage.setItem("studentId", data.student_id);
+                sessionStorage.setItem("studentName", data.name);
+
+                window.location.href = "apply.html";
+
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert('Login failed: ' + err.message);
+            }
+        }
+
+        // 2. New Student Registration Handler
+        async function handleStudentRegistration(event) {
+            event.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const rollno = document.getElementById('regRollNo').value.trim().toUpperCase();
+            const branch = document.getElementById('regBranch').value;
+            const cgpa = parseFloat(document.getElementById('regCgpa').value);
+            const backlogs = parseInt(document.getElementById('regBacklogs').value);
+            const isPlaced = document.getElementById('regIsPlaced').value === 'true';
+
+            // Gather checked skill IDs
+            const selectedSkillCheckboxes = document.querySelectorAll('.reg-skill-checkbox:checked');
+            const selectedSkillIds = Array.from(selectedSkillCheckboxes).map(cb => parseInt(cb.value));
+
+            // Validate capital letter restriction (at most 4)
+            const capitalLettersMatch = rollno.match(/[A-Z]/g);
+            const capitalCount = capitalLettersMatch ? capitalLettersMatch.length : 0;
+
+            if (capitalCount > 4) {
+                alert("Invalid Roll Number! A roll number can contain at most 4 capital letters.");
+                return;
+            }
+
+            if (selectedSkillIds.length === 0) {
+                alert("Please select at least one skill that you possess.");
+                return;
+            }
+
+            try {
+                // Check if rollno already exists
+                const { data: existing } = await activeSupabase
+                    .from('Student')
+                    .select('*')
+                    .eq('rollno', rollno)
+                    .maybeSingle();
+
+                if (existing) {
+                    alert("This roll number is already registered! Please use the 'Student Login' tab.");
+                    return;
+                }
+
+                // Insert new candidate record into Supabase Student table
+                const { data: newStudent, error: insertError } = await activeSupabase
+                    .from('Student')
+                    .insert([{ 
+                        rollno: rollno, 
+                        name: name, 
+                        branch: branch, 
+                        cgpa: cgpa, 
+                        backlogs: backlogs,
+                        is_placed: isPlaced 
+                    }])
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+
+                const newStudentId = newStudent.student_id;
+
+                // Insert corresponding rows into normalized student_skills table
+                const studentSkillsPayload = selectedSkillIds.map(skillId => ({
+                    student_id: newStudentId,
+                    skill_id: skillId
+                }));
+
+                const { error: skillInsertError } = await activeSupabase
+                    .from('student_skills')
+                    .insert(studentSkillsPayload);
+
+                if (skillInsertError) throw skillInsertError;
+
+                // Save session flags
+                sessionStorage.setItem("isStudentAuthenticated", "true");
+                sessionStorage.setItem("studentRollNo", newStudent.rollno);
+                sessionStorage.setItem("studentId", newStudent.student_id);
+                sessionStorage.setItem("studentName", newStudent.name);
+
+                alert("Registration successful with your skills! Redirecting to Job Portal.");
+                window.location.href = "apply.html";
+
+            } catch (err) {
+                console.error("Registration Error:", err);
+                alert('Registration failed: ' + err.message);
+            }
+        }
+
+        // 3. Admin Login Handler
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+
+            if (!email || !password) {
+                alert("Please enter both email and password.");
+                return;
+            }
+
+            try {
+                const { data, error } = await activeSupabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) throw error;
+
+                sessionStorage.setItem("isAdminAuthenticated", "true");
+                window.location.replace("company.html");
+
+            } catch (err) {
+                alert("Authentication Failed: " + err.message);
+                console.error("Login Error:", err);
+            }
+        }
+    </script>
+
+</body>
+</html>

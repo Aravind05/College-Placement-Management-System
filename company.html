@@ -1,0 +1,455 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recruiter Portal - College Placement Management System</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Supabase JS Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .header-title { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #ffffff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card-header-form { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); color: white; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .card-header-table { background: linear-gradient(135deg, #232526 0%, #414345 100%); color: white; font-weight: 600; border-radius: 12px 12px 0 0 !important; }
+    .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
+    .date-separator-row { background-color: #e9ecef !important; font-weight: bold; color: #495057; }
+  </style>
+
+  <!-- Admin Security Check Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (sessionStorage.getItem("isAdminAuthenticated") !== "true") {
+        alert("Unauthorized access! Please log in first.");
+        window.location.replace("index.html");
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <div class="container py-4">
+    <!-- Header Navigation Banner -->
+    <div class="header-title mb-4">
+      <div class="d-flex gap-2 mb-3 border-bottom pb-2 border-white-50 justify-content-between align-items-center">
+        <div>
+          <a href="demo.html" class="btn btn-sm btn-outline-light">Candidates</a>
+          <a href="apply.html" class="btn btn-sm btn-outline-light">Job Portal</a>
+          <a href="company.html" class="btn btn-sm btn-outline-light active">Recruiter Portal</a>
+          <a href="analytics.html" class="btn btn-sm btn-outline-light">Analytics Dashboard</a>
+        </div>
+        <!-- Admin Logout Button -->
+        <div>
+          <button onclick="window.handleAdminLogout()" class="btn btn-sm btn-danger fw-semibold">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Admin Logout
+          </button>
+        </div>
+      </div>
+      <div>
+        <h1 class="fw-bold m-0"><i class="fa-solid fa-building me-2"></i>Recruiter Portal</h1>
+        <p class="m-0 mt-1 opacity-75">Register companies, post drive openings & review candidate applications under secure admin control</p>
+      </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="statusAlert" class="alert alert-dismissible fade show d-none" role="alert">
+      <span id="alertMessage"></span>
+      <button type="button" class="btn-close" onclick="hideAlert()"></button>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <!-- Register Company Form -->
+      <div class="col-lg-5">
+        <div class="card card-custom h-100">
+          <div class="card-header card-header-form py-3">
+            <i class="fa-solid fa-plus-circle me-2"></i>Register New Company
+          </div>
+          <div class="card-body p-4">
+            <form id="companyForm" onsubmit="handleCompanySubmit(event)">
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Company Name</label>
+                <input type="text" id="companyName" class="form-control" placeholder="e.g. Google, Microsoft, TCS" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Location</label>
+                <input type="text" id="companyLocation" class="form-control" placeholder="e.g. Hyderabad, Bangalore" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Contact Email</label>
+                <input type="email" id="companyEmail" class="form-control" placeholder="hr@company.com" required>
+              </div>
+              <button type="submit" class="btn btn-gradient w-100 py-2 mt-2">
+                <i class="fa-solid fa-building-circle-check me-1"></i> Register Company
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post Job Drive Form -->
+      <div class="col-lg-7">
+        <div class="card card-custom h-100">
+          <div class="card-header card-header-form py-3">
+            <i class="fa-solid fa-briefcase me-2"></i>Post Placement Drive Opening
+          </div>
+          <div class="card-body p-4">
+            <form id="jobForm" onsubmit="handleJobSubmit(event)">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-secondary">Select Company</label>
+                  <select id="companySelect" class="form-select" required>
+                    <option value="">Loading companies...</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-secondary">Job Role / Title</label>
+                  <input type="text" id="jobRole" class="form-control" placeholder="e.g. Software Engineer" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Package (LPA)</label>
+                  <input type="number" step="0.1" id="jobPackage" class="form-control" placeholder="e.g. 8.5" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Min CGPA</label>
+                  <input type="number" step="0.1" id="jobCgpa" class="form-control" placeholder="e.g. 7.0" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Max Backlogs</label>
+                  <input type="number" id="jobBacklogs" class="form-control" placeholder="e.g. 0" required>
+                </div>
+                
+                <!-- Normalized Required Skills Selection Checkboxes -->
+                <div class="col-12 mt-3">
+                  <label class="form-label fw-semibold text-secondary">Required Skills (Select all that apply)</label>
+                  <div id="jobSkillsContainer" class="border p-3 rounded bg-light" style="max-height: 150px; overflow-y: auto;">
+                    <span class="text-muted small">Loading available skills...</span>
+                  </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                  <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Post Drive Opening
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Candidate Applications Review Table -->
+    <div class="card card-custom">
+      <div class="card-header card-header-table py-3 d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-user-check me-2"></i>Review Received Candidate Applications (Last 3 Days)</span>
+        <div>
+          <button onclick="exportTableToCSV('recruiter_applications.csv')" class="btn btn-sm btn-success me-2">
+            <i class="fa-solid fa-file-excel me-1"></i> Export CSV
+          </button>
+          <button onclick="loadRecruiterApplications()" class="btn btn-sm btn-outline-light">
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle m-0">
+            <thead class="table-light">
+              <tr>
+                <th>Candidate Name</th>
+                <th>Roll No</th>
+                <th>Role Applied</th>
+                <th>CGPA</th>
+                <th>Status</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recruiterAppsTable">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  <div class="spinner-border spinner-border-sm me-2 text-primary"></div> Loading received applications...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let registeredCompanies = [];
+    let availableMasterSkills = [];
+
+    // Trigger portal data loading when DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+      initRecruiterPortal();
+    });
+
+    async function initRecruiterPortal() {
+      await loadCompanies();
+      await loadMasterSkills();
+      await loadRecruiterApplications();
+    }
+
+    async function loadCompanies() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('company')
+          .select('*')
+          .order('company_id', { ascending: true });
+
+        if (error) throw error;
+
+        registeredCompanies = data || [];
+        const select = document.getElementById('companySelect');
+
+        if (registeredCompanies.length === 0) {
+          select.innerHTML = '<option value="">No companies registered yet</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="">-- Choose Registered Company --</option>' +
+          registeredCompanies.map(c => `<option value="${c.company_id}">${c.name} (${c.location || 'N/A'})</option>`).join('');
+      } catch (err) {
+        console.error("Company Fetch Error:", err);
+        showAlert('Error loading companies: ' + err.message, 'danger');
+      }
+    }
+
+    // Load master skills for job requirements checkbox selection
+    async function loadMasterSkills() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('skills')
+          .select('*')
+          .order('skill_name', { ascending: true });
+
+        if (error) throw error;
+        availableMasterSkills = data || [];
+
+        const container = document.getElementById('jobSkillsContainer');
+        if (!availableMasterSkills || availableMasterSkills.length === 0) {
+          container.innerHTML = '<span class="text-muted small">No skills found in master table. Please add skills first.</span>';
+          return;
+        }
+
+        container.innerHTML = availableMasterSkills.map(s => `
+          <div class="form-check form-check-inline mb-2" style="min-width: 120px;">
+            <input class="form-check-input job-skill-checkbox" type="checkbox" value="${s.skill_id}" id="skill_${s.skill_id}">
+            <label class="form-check-label small fw-semibold text-dark" for="skill_${s.skill_id}">
+              ${s.skill_name}
+            </label>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error("Error loading master skills:", err);
+      }
+    }
+
+    async function handleCompanySubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('companyName').value;
+      const location = document.getElementById('companyLocation').value;
+      const email = document.getElementById('companyEmail').value;
+
+      try {
+        const { error } = await supabaseClient
+          .from('company')
+          .insert([{ name, location, email }]);
+
+        if (error) throw error;
+
+        showAlert(`Company "${name}" registered successfully!`, 'success');
+        document.getElementById('companyForm').reset();
+        await loadCompanies();
+      } catch (err) {
+        showAlert('Registration Failed: ' + err.message, 'danger');
+      }
+    }
+
+    async function handleJobSubmit(e) {
+      e.preventDefault();
+      const companyId = document.getElementById('companySelect').value;
+      const role = document.getElementById('jobRole').value;
+      const packageLpa = parseFloat(document.getElementById('jobPackage').value);
+      const minCgpa = parseFloat(document.getElementById('jobCgpa').value);
+      const maxBacklogs = parseInt(document.getElementById('jobBacklogs').value);
+
+      // Collect checked skill IDs
+      const selectedSkillCheckboxes = document.querySelectorAll('.job-skill-checkbox:checked');
+      const selectedSkillIds = Array.from(selectedSkillCheckboxes).map(cb => parseInt(cb.value));
+
+      if (!companyId) {
+        showAlert('Please select a company before posting a drive opening.', 'warning');
+        return;
+      }
+
+      if (selectedSkillIds.length === 0) {
+        showAlert('Please select at least one required skill for this position.', 'warning');
+        return;
+      }
+
+      try {
+        // 1. Insert job record and fetch generated ID
+        const { data: newJobData, error: jobError } = await supabaseClient
+          .from('job')
+          .insert([{
+            company_id: parseInt(companyId),
+            role: role,
+            package_lpa: packageLpa,
+            min_cgpa: minCgpa,
+            max_backlogs: maxBacklogs,
+            status: 'Open'
+          }])
+          .select();
+
+        if (jobError) throw jobError;
+        const newJobId = newJobData[0].job_id;
+
+        // 2. Insert corresponding links into job_skills relation table
+        const jobSkillsPayload = selectedSkillIds.map(skillId => ({
+          job_id: newJobId,
+          skill_id: skillId
+        }));
+
+        const { error: skillInsertError } = await supabaseClient
+          .from('job_skills')
+          .insert(jobSkillsPayload);
+
+        if (skillInsertError) throw skillInsertError;
+
+        showAlert(`Drive opening for "${role}" posted successfully with required skills!`, 'success');
+        document.getElementById('jobForm').reset();
+        document.querySelectorAll('.job-skill-checkbox').forEach(cb => cb.checked = false);
+      } catch (err) {
+        showAlert('Drive Posting Failed: ' + err.message, 'danger');
+      }
+    }
+
+    async function loadRecruiterApplications() {
+      try {
+        const [appRes, studentRes, jobRes] = await Promise.all([
+          supabaseClient.from('application').select('*').order('application_id', { ascending: false }),
+          supabaseClient.from('Student').select('*'),
+          supabaseClient.from('job').select('*')
+        ]);
+
+        if (appRes.error) throw appRes.error;
+        if (studentRes.error) throw studentRes.error;
+        if (jobRes.error) throw jobRes.error;
+
+        const apps = appRes.data || [];
+        const students = studentRes.data || [];
+        const jobs = jobRes.data || [];
+
+        const tableBody = document.getElementById('recruiterAppsTable');
+
+        if (apps.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No candidate applications received yet.</td></tr>';
+          return;
+        }
+
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+        let htmlRows = '';
+        let lastDateFormatted = '';
+        let displayedCount = 0;
+
+        apps.forEach(app => {
+          const appDate = app.created_at ? new Date(app.created_at) : new Date();
+          
+          if (app.created_at && appDate < threeDaysAgo) {
+            return; 
+          }
+
+          displayedCount++;
+          const student = students.find(s => s.student_id === app.student_id) || {};
+          const job = jobs.find(j => j.job_id === app.job_id) || {};
+
+          const dateFormatted = appDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+          if (dateFormatted !== lastDateFormatted) {
+            lastDateFormatted = dateFormatted;
+            htmlRows += `
+              <tr class="date-separator-row">
+                <td colspan="6" class="py-2 px-3 text-uppercase fs-7"><i class="fa-solid fa-calendar-day me-2"></i>${dateFormatted}</td>
+              </tr>
+            `;
+          }
+
+          let badgeClass = 'bg-info text-dark';
+          if (app.status === 'Shortlisted') badgeClass = 'bg-warning text-dark';
+          if (app.status === 'Selected') badgeClass = 'bg-success';
+          if (app.status === 'Rejected' || app.status === 'Not Qualified') badgeClass = 'bg-danger';
+
+          // Build reasons & learning paths text for recruiter view
+          let extraInfo = '';
+          if (app.reason) {
+            extraInfo += `<br><small class="text-danger"><strong>Reason:</strong> ${app.reason}</small>`;
+          }
+          if (app.recommendation && app.recommendation !== 'None') {
+            extraInfo += `<br><small class="text-primary"><strong>Learn Path:</strong> ${app.recommendation}</small>`;
+          }
+
+          htmlRows += `
+            <tr>
+              <td><strong>${student.name || 'Candidate #' + app.student_id}</strong><br><small class="text-muted">${student.branch || ''}</small></td>
+              <td>${student.rollno || 'N/A'}</td>
+              <td><strong>${job.role || 'Job #' + app.job_id}</strong></td>
+              <td><span class="badge bg-secondary">${student.cgpa || 'N/A'}</span></td>
+              <td><span class="badge ${badgeClass}">${app.status || 'Applied'}</span>${extraInfo}</td>
+              <td class="text-end pe-3">
+                <button onclick="updateStatus(${app.application_id}, ${app.student_id}, 'Shortlisted')" class="btn btn-sm btn-outline-warning me-1">Shortlist</button>
+                <button onclick="updateStatus(${app.application_id}, ${app.student_id}, 'Selected')" class="btn btn-sm btn-success me-1">Mark Placed</button>
+                <button onclick="updateStatus(${app.application_id}, ${app.student_id}, 'Not Qualified')" class="btn btn-sm btn-outline-danger">Reject</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        if (displayedCount === 0) {
+          tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No recent applications found within the last 3 days.</td></tr>';
+        } else {
+          tableBody.innerHTML = htmlRows;
+        }
+      } catch (err) {
+        console.error("Recruiter Applications Error:", err);
+        const tableBody = document.getElementById('recruiterAppsTable');
+        if (tableBody) {
+          tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error loading records: ${err.message}</td></tr>`;
+        }
+      }
+    }
+
+    // Direct Data-Driven CSV Export Function
+    async function exportTableToCSV(filename = 'recruiter_applications.csv') {
+      try {
+        const [appRes, studentRes, jobRes] = await Promise.all([
+          supabaseClient.from('application').select('*').order('application_id', { ascending: false }),
+          supabaseClient.from('Student').select('*'),
+          supabaseClient.from('job').select('*')
+        ]);
+
+        const apps = appRes.data || [];
+        const students = studentRes.data || [];
+        const jobs = jobRes.data || [];
+
+        if (apps.length === 0) {
+          alert('No applications available to export.');
+          return;
+        }
+
+        // CSV Header
+        let csv = ['"Candidate Name","Roll No","Role Applied
