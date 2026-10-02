@@ -195,7 +195,7 @@
         async function loadMasterSkillsForRegistration() {
             try {
                 const { data, error } = await activeSupabase
-                    .from('skills')
+                    .from('skill')
                     .select('*')
                     .order('skill_name', { ascending: true });
 
