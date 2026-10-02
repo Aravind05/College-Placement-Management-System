@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,9 +14,11 @@
     <style>
       body { background: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
       .navbar-brand { font-weight: 700; letter-spacing: 0.5px; }
-      .card-custom { border: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s; background: #ffffff; }
-      .card-custom:hover { transform: translateY(-2px); }
+      .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; background: #ffffff; }
+      .card-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
       .badge-skill { background-color: #e9ecef; color: #495057; font-weight: 500; font-size: 0.75rem; padding: 0.35em 0.65em; border-radius: 6px; }
+      .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
+      .btn-gradient:hover { background: linear-gradient(135deg, #1e60db 0%, #590db0 100%); color: white; }
     </style>
 </head>
 <body>
@@ -42,7 +44,7 @@
                 <p class="text-muted small mb-0">Browse open company drives, verify your technical eligibility, and apply.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <button onclick="loadJobOpenings()" class="btn btn-outline-primary btn-sm fw-semibold">
+                <button onclick="loadJobOpenings()" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm">
                     <i class="fa-solid fa-rotate me-1"></i> Refresh Openings
                 </button>
             </div>
@@ -58,7 +60,7 @@
                         <label class="form-label small fw-semibold text-secondary">Roll Number</label>
                         <input type="text" id="trackRollNo" class="form-control form-control-sm" placeholder="e.g. 26075A6704" style="text-transform: uppercase;">
                     </div>
-                    <button onclick="trackStudentApplications()" class="btn btn-primary btn-sm w-100 fw-semibold mb-3">
+                    <button onclick="trackStudentApplications()" class="btn btn-primary btn-sm w-100 fw-semibold mb-3 shadow-sm">
                         <i class="fa-solid fa-search me-1"></i> Check Live Status
                     </button>
                     <div id="trackerResultsContainer" style="max-height: 350px; overflow-y: auto;">
@@ -129,7 +131,7 @@
                 // Fetch jobs joined with company info
                 let { data: jobs, error: jobError } = await activeSupabase
                     .from('job')
-                    .select('*, company(name, sector, hr_contact)')
+                    .select('*, company(name, location, sector, email)')
                     .order('job_id', { ascending: false });
 
                 if (jobError) throw jobError;
@@ -144,9 +146,9 @@
                     return;
                 }
 
-                // Fetch all job_skills mappings and master skills list
+                // Fetch all job_skills mappings and master skills list (using singular 'skill' table)
                 let { data: jobSkillsData } = await activeSupabase.from('job_skills').select('*');
-                let { data: masterSkills } = await activeSupabase.from('skills').select('*');
+                let { data: masterSkills } = await activeSupabase.from('skill').select('*');
 
                 const skillsMap = {};
                 if (masterSkills) {
@@ -169,28 +171,52 @@
                         ? reqSkills.map(sk => `<span class="badge badge-skill me-1 mb-1">${sk}</span>`).join('')
                         : '<span class="text-muted small fst-italic">No specific technical skill prerequisites</span>';
 
+                    const compName = job.company ? job.company.name : 'Partner Company';
+                    const compLocation = job.company && job.company.location ? job.company.location : 'On-site / Remote';
+
                     return `
                         <div class="col-md-12 mb-3">
-                            <div class="card card-custom p-3">
+                            <div class="card card-custom p-4 border-0 shadow-sm" style="border-left: 5px solid #2575fc !important;">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <h5 class="fw-bold text-dark mb-1">${job.job_role}</h5>
-                                        <h6 class="text-primary small fw-semibold mb-2">${job.company ? job.company.name : 'Company'} <span class="text-muted fw-normal">(${job.company ? job.company.sector : 'General'})</span></h6>
+                                        <!-- Fixed undefined error by pointing directly to job.job_role -->
+                                        <h4 class="fw-bold text-dark mb-1">
+                                            <i class="fa-solid fa-briefcase text-primary me-2"></i>${job.job_role || 'Software Engineer'}
+                                        </h4>
+                                        <p class="text-muted fw-semibold mb-2">
+                                            <i class="fa-solid fa-building me-1"></i>${compName} 
+                                            <span class="badge bg-light text-secondary border ms-1">
+                                                <i class="fa-solid fa-location-dot me-1"></i>${compLocation}
+                                            </span>
+                                        </p>
                                     </div>
-                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 fw-semibold">₹ ${job.package} LPA</span>
+                                    <div class="text-end">
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-2 fs-6">
+                                            <i class="fa-solid fa-indian-rupee-sign me-1"></i>${job.package ? job.package + ' LPA' : 'Competitive'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="row g-2 my-2 text-muted small">
-                                    <div class="col-auto"><strong>Min CGPA:</strong> ${job.min_cgpa}</div>
-                                    <div class="col-auto">|</div>
-                                    <div class="col-auto"><strong>Max Backlogs:</strong> ${job.max_backlogs}</div>
+
+                                <div class="row g-2 my-2 py-2 border-top border-bottom bg-light rounded px-2 small text-secondary">
+                                    <div class="col-sm-6">
+                                        <i class="fa-solid fa-graduation-cap me-1 text-primary"></i><strong>Min CGPA:</strong> ${job.min_cgpa || '0.0'}
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i><strong>Max Backlogs:</strong> ${job.max_backlogs !== undefined ? job.max_backlogs : 'N/A'}
+                                    </div>
                                 </div>
+
                                 <div class="mb-3">
                                     <strong class="d-block small text-secondary mb-1">Required Technical Skills:</strong>
                                     <div>${skillsBadges}</div>
                                 </div>
-                                <button onclick="applyForJob(${job.job_id}, ${job.min_cgpa}, ${job.max_backlogs})" class="btn btn-gradient btn-sm w-100 fw-semibold">
-                                    <i class="fa-solid fa-paper-plane me-1"></i> Apply Now
-                                </button>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="text-muted small"><i class="fa-solid fa-check-circle text-success me-1"></i>Verified Placement Drive</span>
+                                    <button onclick="applyForJob(${job.job_id}, ${job.min_cgpa}, ${job.max_backlogs})" class="btn btn-gradient btn-sm px-4 py-2 fw-semibold shadow-sm">
+                                        <i class="fa-solid fa-paper-plane me-1"></i> Apply Now
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -198,7 +224,7 @@
 
             } catch (err) {
                 console.error("Error loading job openings:", err);
-                container.innerHTML = `<div class="col-12 text-danger small text-center">Failed to load openings: ${err.message}</div>`;
+                container.innerHTML = `<div class="col-12 text-danger small text-center py-4">Failed to load openings: ${err.message}</div>`;
             }
         }
 
@@ -241,8 +267,8 @@
                 if (jSkillErr) throw jSkillErr;
                 const jobSkillIds = (jobSkillsRows || []).map(row => row.skill_id);
 
-                // Fetch Master Skills Names for feedback generation
-                const { data: masterSkills } = await activeSupabase.from('skills').select('*');
+                // Fetch Master Skills Names for feedback generation (singular 'skill' table)
+                const { data: masterSkills } = await activeSupabase.from('skill').select('*');
                 const masterMap = {};
                 if (masterSkills) {
                     masterSkills.forEach(s => { masterMap[s.skill_id] = s.skill_name; });
@@ -351,7 +377,7 @@
                 container.innerHTML = apps.map(app => {
                     const badgeColor = app.status === 'Qualified' ? 'bg-success' : 'bg-danger';
                     return `
-                        <div class="border rounded p-2 mb-2 bg-light small">
+                        <div class="border rounded p-2 mb-2 bg-light small shadow-sm">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <strong class="text-dark">${app.job ? app.job.job_role : 'Job'}</strong>
                                 <span class="badge ${badgeColor} text-white" style="font-size: 0.65rem;">${app.status}</span>
