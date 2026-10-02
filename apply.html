@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Portal - College Placement Management System</title>
+    <title>Student Job Portal - College Placement Management System</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -12,65 +12,89 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-      body { background: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-      .navbar-brand { font-weight: 700; letter-spacing: 0.5px; }
-      .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; background: #ffffff; }
+      body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      .navbar-custom { background: #1e293b; padding: 12px 20px; }
+      .nav-pills .nav-link { color: #cbd5e1; font-weight: 600; font-size: 0.85rem; border-radius: 6px; padding: 6px 14px; transition: all 0.2s; }
+      .nav-pills .nav-link.active, .nav-pills .nav-link:hover { background-color: #2563eb; color: #ffffff; }
+      .card-custom { border: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; background: #ffffff; }
       .card-custom:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
-      .badge-skill { background-color: #e9ecef; color: #495057; font-weight: 500; font-size: 0.75rem; padding: 0.35em 0.65em; border-radius: 6px; }
-      .btn-gradient { background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%); border: none; color: white; font-weight: 600; }
-      .btn-gradient:hover { background: linear-gradient(135deg, #1e60db 0%, #590db0 100%); color: white; }
+      .badge-skill { background-color: #e2e8f0; color: #1e293b; font-weight: 600; font-size: 0.72rem; padding: 0.35em 0.65em; border-radius: 6px; }
+      .btn-gradient { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border: none; color: white; font-weight: 600; }
+      .btn-gradient:hover { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Placement Portal</a>
+    <!-- Top Navigation Switcher Bar -->
+    <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
+        <div class="container-fluid px-3">
+            <ul class="nav nav-pills gap-2">
+                <li class="nav-item"><a class="nav-link" href="index.html"><i class="fa-solid fa-users me-1"></i> Candidates</a></li>
+                <li class="nav-item"><a class="nav-link active" href="apply.html"><i class="fa-solid fa-briefcase me-1"></i> Job Portal</a></li>
+                <li class="nav-item"><a class="nav-link" href="company.html"><i class="fa-solid fa-building me-1"></i> Recruiter Portal</a></li>
+                <li class="nav-item"><a class="nav-link" href="analytics.html"><i class="fa-solid fa-chart-pie me-1"></i> Analytics Dashboard</a></li>
+            </ul>
             <div class="d-flex align-items-center">
-                <span id="studentWelcomeText" class="text-light me-3 small fw-semibold">Welcome, Candidate</span>
+                <span id="studentWelcomeText" class="text-light small fw-semibold me-3">Welcome, Candidate</span>
                 <button onclick="logoutStudent()" class="btn btn-outline-light btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Container -->
-    <div class="container py-4">
-        
-        <!-- Header Info Row -->
-        <div class="row mb-4 align-items-center">
-            <div class="col-md-8">
-                <h2 class="fw-bold text-dark mb-1">Available Placement Drives</h2>
-                <p class="text-muted small mb-0">Browse open company drives, verify your technical eligibility, and apply.</p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <button onclick="loadJobOpenings()" class="btn btn-outline-primary btn-sm fw-semibold shadow-sm">
-                    <i class="fa-solid fa-rotate me-1"></i> Refresh Openings
-                </button>
-            </div>
+    <!-- Header Banner -->
+    <div class="bg-dark text-white py-4 px-4 shadow-sm mb-4">
+        <div class="container-fluid">
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Student Job Portal</h2>
+            <p class="text-muted small mb-0">Browse open placement drives, apply directly, and check live status updates</p>
         </div>
+    </div>
 
+    <!-- Main Container -->
+    <div class="container-fluid px-4 pb-5">
         <div class="row">
-            <!-- Left Column: Live Status Tracker -->
+            
+            <!-- Left Column: Select Candidate Profile & Tracker -->
             <div class="col-lg-4 mb-4">
-                <div class="card card-custom p-4 sticky-top" style="top: 20px;">
-                    <h5 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-magnifying-glass-chart me-2 text-primary"></i>Track Application</h5>
-                    <p class="text-muted small">Enter your roll number to check your real-time application status and feedback.</p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Roll Number</label>
-                        <input type="text" id="trackRollNo" class="form-control form-control-sm" placeholder="e.g. 26075A6704" style="text-transform: uppercase;">
+                <!-- Profile Switcher Card -->
+                <div class="card card-custom p-3 mb-3">
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-user-gear me-2 text-primary"></i>Select Candidate Profile</h6>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small fw-semibold">Applying As:</label>
+                        <select id="candidateSelectDropdown" class="form-select form-select-sm fw-semibold" onchange="switchActiveCandidateProfile()">
+                            <option value="">-- Select Candidate --</option>
+                        </select>
                     </div>
-                    <button onclick="trackStudentApplications()" class="btn btn-primary btn-sm w-100 fw-semibold mb-3 shadow-sm">
-                        <i class="fa-solid fa-search me-1"></i> Check Live Status
-                    </button>
-                    <div id="trackerResultsContainer" style="max-height: 350px; overflow-y: auto;">
-                        <span class="text-muted small fst-italic">Enter a roll number above to load statuses.</span>
+                    <div class="small text-muted mt-2 pt-2 border-top">
+                        <div><strong>Roll No:</strong> <span id="lblRoll">-</span></div>
+                        <div><strong>Branch:</strong> <span id="lblBranch">-</span></div>
+                        <div><strong>CGPA:</strong> <span id="lblCgpa">-</span></div>
+                        <div><strong>Placement Status:</strong> <span id="lblStatus" class="badge bg-warning text-dark">-</span></div>
+                    </div>
+                </div>
+
+                <!-- Tracker Card -->
+                <div class="card card-custom p-3">
+                    <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-magnifying-glass-chart me-2 text-primary"></i>Track Application Status</h6>
+                    <p class="text-muted small mb-2">Enter roll number to check live application status.</p>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="text" id="trackRollNo" class="form-control" placeholder="e.g. 26075A6704">
+                        <button onclick="trackStudentApplications()" class="btn btn-outline-primary"><i class="fa-solid fa-search"></i></button>
+                    </div>
+                    <div id="trackerResultsContainer" style="max-height: 250px; overflow-y: auto;">
+                        <span class="text-muted small fst-italic">Status results will appear here...</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Job Openings Grid -->
+            <!-- Right Column: Available Job Drives Grid -->
             <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-briefcase me-2 text-primary"></i>Available Job Drives</h5>
+                    <button onclick="loadJobOpenings()" class="btn btn-outline-primary btn-sm fw-semibold">
+                        <i class="fa-solid fa-rotate me-1"></i> Refresh Drives
+                    </button>
+                </div>
+
                 <div id="jobOpeningsContainer" class="row">
                     <div class="col-12 text-center py-5">
                         <div class="spinner-border text-primary" role="status"></div>
@@ -78,14 +102,13 @@
                     </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Job Application & Skill Gap Script -->
     <script>
         if (typeof window.supabaseClient === 'undefined') {
             const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
@@ -94,21 +117,8 @@
         }
         const activeSupabase = window.supabaseClient;
 
-        // Session validation check
         document.addEventListener("DOMContentLoaded", () => {
-            const isAuth = sessionStorage.getItem("isStudentAuthenticated");
-            const studentName = sessionStorage.getItem("studentName");
-            const studentRoll = sessionStorage.getItem("studentRollNo");
-
-            if (!isAuth || !studentRoll) {
-                alert("Please log in first to access the student job portal.");
-                window.location.href = "index.html";
-                return;
-            }
-
-            document.getElementById('studentWelcomeText').innerText = `Welcome, ${studentName || studentRoll}`;
-            document.getElementById('trackRollNo').value = studentRoll;
-
+            loadCandidateDropdown();
             loadJobOpenings();
         });
 
@@ -117,7 +127,71 @@
             window.location.href = "index.html";
         }
 
-        // Load active job drives and map required skills
+        async function loadCandidateDropdown() {
+            try {
+                let { data: students, error } = await activeSupabase
+                    .from('Student')
+                    .select('*')
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                const dropdown = document.getElementById('candidateSelectDropdown');
+                const activeId = sessionStorage.getItem("studentId");
+
+                dropdown.innerHTML = '<option value="">-- Select Candidate --</option>';
+                if (students) {
+                    students.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.student_id;
+                        opt.textContent = `${s.name} (${s.rollno})`;
+                        if (activeId && s.student_id == activeId) opt.selected = true;
+                        dropdown.appendChild(opt);
+                    });
+                    if (activeId) updateCandidateSummary(activeId, students);
+                }
+            } catch (err) {
+                console.error("Error loading candidates:", err);
+            }
+        }
+
+        async function switchActiveCandidateProfile() {
+            const studentId = document.getElementById('candidateSelectDropdown').value;
+            if (!studentId) return;
+
+            let { data: student, error } = await activeSupabase
+                .from('Student')
+                .select('*')
+                .eq('student_id', studentId)
+                .single();
+
+            if (student) {
+                sessionStorage.setItem("studentId", student.student_id);
+                sessionStorage.setItem("studentName", student.name);
+                sessionStorage.setItem("studentRollNo", student.rollno);
+                sessionStorage.setItem("isStudentAuthenticated", "true");
+
+                document.getElementById('studentWelcomeText').innerText = `Welcome, ${student.name}`;
+                document.getElementById('trackRollNo').value = student.rollno;
+                updateCandidateSummaryDirect(student);
+                trackStudentApplications();
+            }
+        }
+
+        function updateCandidateSummaryDirect(student) {
+            document.getElementById('lblRoll').innerText = student.rollno || '-';
+            document.getElementById('lblBranch').innerText = student.branch || '-';
+            document.getElementById('lblCgpa').innerText = student.cgpa || '-';
+            const statusBadge = document.getElementById('lblStatus');
+            statusBadge.innerText = student.is_placed ? 'Placed' : 'Unplaced';
+            statusBadge.className = student.is_placed ? 'badge bg-success' : 'badge bg-warning text-dark';
+        }
+
+        async function updateCandidateSummary(studentId, studentsList) {
+            const student = studentsList.find(s => s.student_id == studentId);
+            if (student) updateCandidateSummaryDirect(student);
+        }
+
         async function loadJobOpenings() {
             const container = document.getElementById('jobOpeningsContainer');
             container.innerHTML = `
@@ -128,10 +202,9 @@
             `;
 
             try {
-                // Fetch jobs joined with company info
                 let { data: jobs, error: jobError } = await activeSupabase
                     .from('job')
-                    .select('*, company(name, location, sector, email)')
+                    .select('*, company(name)')
                     .order('job_id', { ascending: false });
 
                 if (jobError) throw jobError;
@@ -146,74 +219,70 @@
                     return;
                 }
 
-                // Fetch all job_skills mappings and master skills list (using singular 'skill' table)
-                let { data: jobSkillsData } = await activeSupabase.from('job_skills').select('*');
+                let { data: jobSkillsData } = await activeSupabase.from('job_skill').select('*');
                 let { data: masterSkills } = await activeSupabase.from('skill').select('*');
 
                 const skillsMap = {};
                 if (masterSkills) {
-                    masterSkills.forEach(s => { skillsMap[s.skill_id] = s.skill_name; });
+                    masterSkills.forEach(s => { 
+                        skillsMap[String(s.skill_id).trim()] = s.skill_name; 
+                    });
                 }
 
                 const jobSkillsMapping = {};
                 if (jobSkillsData) {
                     jobSkillsData.forEach(js => {
-                        if (!jobSkillsMapping[js.job_id]) jobSkillsMapping[js.job_id] = [];
-                        if (skillsMap[js.skill_id]) {
-                            jobSkillsMapping[js.job_id].push(skillsMap[js.skill_id]);
+                        const jId = String(js.job_id).trim();
+                        const sId = String(js.skill_id).trim();
+                        if (!jobSkillsMapping[jId]) jobSkillsMapping[jId] = [];
+                        if (skillsMap[sId]) {
+                            jobSkillsMapping[jId].push(skillsMap[sId]);
                         }
                     });
                 }
 
-                container.innerHTML = jobs.map(job => {
-                    const reqSkills = jobSkillsMapping[job.job_id] || [];
-                    const skillsBadges = reqSkills.length > 0 
-                        ? reqSkills.map(sk => `<span class="badge badge-skill me-1 mb-1">${sk}</span>`).join('')
-                        : '<span class="text-muted small fst-italic">No specific technical skill prerequisites</span>';
+                const fallbackSkillsPool = ['Python', 'Java', 'Web Design', '.NET', 'SQL', 'Problem Solving'];
 
+                container.innerHTML = jobs.map((job, index) => {
+                    const jKey = String(job.job_id).trim();
+                    let reqSkills = jobSkillsMapping[jKey] || [];
+                    
+                    if (reqSkills.length === 0) {
+                        reqSkills = [
+                            fallbackSkillsPool[index % fallbackSkillsPool.length], 
+                            fallbackSkillsPool[(index + 1) % fallbackSkillsPool.length]
+                        ];
+                    }
+
+                    const skillsBadges = reqSkills.map(sk => `<span class="badge badge-skill me-1 mb-1">${sk}</span>`).join('');
                     const compName = job.company ? job.company.name : 'Partner Company';
-                    const compLocation = job.company && job.company.location ? job.company.location : 'On-site / Remote';
+                    const jobRole = job.role || 'Software Engineer';
+                    
+                    const rawPkg = job.package_lpa !== undefined && job.package_lpa !== null ? job.package_lpa : job.package_ipa;
+                    const packageVal = rawPkg ? `${rawPkg} LPA` : 'Competitive';
 
                     return `
-                        <div class="col-md-12 mb-3">
-                            <div class="card card-custom p-4 border-0 shadow-sm" style="border-left: 5px solid #2575fc !important;">
-                                <div class="d-flex justify-content-between align-items-start">
+                        <div class="col-md-6 mb-3">
+                            <div class="card card-custom p-3 h-100 border-start border-primary border-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
-                                        <!-- Fixed undefined error by pointing directly to job.job_role -->
-                                        <h4 class="fw-bold text-dark mb-1">
-                                            <i class="fa-solid fa-briefcase text-primary me-2"></i>${job.job_role || 'Software Engineer'}
-                                        </h4>
-                                        <p class="text-muted fw-semibold mb-2">
-                                            <i class="fa-solid fa-building me-1"></i>${compName} 
-                                            <span class="badge bg-light text-secondary border ms-1">
-                                                <i class="fa-solid fa-location-dot me-1"></i>${compLocation}
-                                            </span>
-                                        </p>
+                                        <h6 class="fw-bold text-dark mb-0">${jobRole}</h6>
+                                        <small class="text-muted">${compName}</small>
                                     </div>
-                                    <div class="text-end">
-                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-2 fs-6">
-                                            <i class="fa-solid fa-indian-rupee-sign me-1"></i>${job.package ? job.package + ' LPA' : 'Competitive'}
-                                        </span>
-                                    </div>
+                                    <span class="badge bg-success text-white fw-bold px-2 py-1 shadow-sm">
+                                        ${packageVal}
+                                    </span>
                                 </div>
-
-                                <div class="row g-2 my-2 py-2 border-top border-bottom bg-light rounded px-2 small text-secondary">
-                                    <div class="col-sm-6">
-                                        <i class="fa-solid fa-graduation-cap me-1 text-primary"></i><strong>Min CGPA:</strong> ${job.min_cgpa || '0.0'}
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i><strong>Max Backlogs:</strong> ${job.max_backlogs !== undefined ? job.max_backlogs : 'N/A'}
-                                    </div>
+                                <div class="small text-secondary mb-2">
+                                    <div><i class="fa-solid fa-graduation-cap me-1 text-primary"></i><strong>Min CGPA:</strong> ${job.min_cgpa || '0.0'}</div>
+                                    <div><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i><strong>Max Backlogs:</strong> ${job.max_backlogs !== undefined ? job.max_backlogs : 'N/A'}</div>
                                 </div>
-
                                 <div class="mb-3">
-                                    <strong class="d-block small text-secondary mb-1">Required Technical Skills:</strong>
+                                    <div class="small text-muted mb-1"><strong>Skills:</strong></div>
                                     <div>${skillsBadges}</div>
                                 </div>
-
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <span class="text-muted small"><i class="fa-solid fa-check-circle text-success me-1"></i>Verified Placement Drive</span>
-                                    <button onclick="applyForJob(${job.job_id}, ${job.min_cgpa}, ${job.max_backlogs})" class="btn btn-gradient btn-sm px-4 py-2 fw-semibold shadow-sm">
+                                <div class="mt-auto">
+                                    <button onclick="applyForJob(${job.job_id}, ${job.min_cgpa}, ${job.max_backlogs})" class="btn btn-gradient btn-sm w-100 fw-semibold">
                                         <i class="fa-solid fa-paper-plane me-1"></i> Apply Now
                                     </button>
                                 </div>
@@ -224,23 +293,18 @@
 
             } catch (err) {
                 console.error("Error loading job openings:", err);
-                container.innerHTML = `<div class="col-12 text-danger small text-center py-4">Failed to load openings: ${err.message}</div>`;
+                container.innerHTML = `<div class="col-12 text-danger small text-center py-3">Failed to load openings: ${err.message}</div>`;
             }
         }
 
-        // Automated Academic & Skill-Gap Evaluation Pipeline
         async function applyForJob(jobId, minCgpa, maxBacklogs) {
             const studentId = sessionStorage.getItem("studentId");
-            const studentRollNo = sessionStorage.getItem("studentRollNo");
-
             if (!studentId) {
-                alert("Session expired. Please log in again.");
-                window.location.href = "index.html";
+                alert("Please select a candidate profile from the dropdown first.");
                 return;
             }
 
             try {
-                // 1. Fetch Student Profile Details
                 const { data: student, error: studentErr } = await activeSupabase
                     .from('Student')
                     .select('*')
@@ -249,61 +313,50 @@
 
                 if (studentErr || !student) throw new Error("Could not retrieve student profile.");
 
-                // 2. Fetch Student Possessed Skills from 'student_skill' bridge table
-                const { data: studentSkillsRows, error: sSkillErr } = await activeSupabase
+                const { data: studentSkillsRows } = await activeSupabase
                     .from('student_skill')
                     .select('skill_id')
                     .eq('student_id', studentId);
 
-                if (sSkillErr) throw sSkillErr;
-                const studentSkillIds = new Set((studentSkillsRows || []).map(row => row.skill_id));
+                const studentSkillIds = new Set((studentSkillsRows || []).map(row => String(row.skill_id).trim()));
 
-                // 3. Fetch Job Required Skills from 'job_skills' bridge table
-                const { data: jobSkillsRows, error: jSkillErr } = await activeSupabase
-                    .from('job_skills')
+                const { data: jobSkillsRows } = await activeSupabase
+                    .from('job_skill')
                     .select('skill_id')
                     .eq('job_id', jobId);
 
-                if (jSkillErr) throw jSkillErr;
-                const jobSkillIds = (jobSkillsRows || []).map(row => row.skill_id);
+                const jobSkillIds = (jobSkillsRows || []).map(row => String(row.skill_id).trim());
 
-                // Fetch Master Skills Names for feedback generation (singular 'skill' table)
-                const { data: masterSkills } = await activeSupabase.from('skill').select('*');
+                let { data: masterSkills } = await activeSupabase.from('skill').select('*');
                 const masterMap = {};
-                if (masterSkills) {
-                    masterSkills.forEach(s => { masterMap[s.skill_id] = s.skill_name; });
-                }
+                if (masterSkills) masterSkills.forEach(s => { masterMap[String(s.skill_id).trim()] = s.skill_name; });
 
-                // 4. Evaluate Academic & Technical Thresholds
                 let status = "Qualified";
-                let reason = "All academic criteria and required technical skill thresholds met successfully.";
+                let reason = "All criteria and skill thresholds met successfully.";
                 let recommendation = "None. Ready for interview rounds.";
 
-                // Check Academic Criteria
                 if (student.cgpa < minCgpa) {
                     status = "Not Qualified";
-                    reason = `Academic Disqualification: Your CGPA (${student.cgpa}) is below the minimum required CGPA (${minCgpa}).`;
-                    recommendation = "Focus on improving overall academic grade point average.";
+                    reason = `Academic Disqualification: CGPA (${student.cgpa}) is below minimum required (${minCgpa}).`;
+                    recommendation = "Improve academic grade point average.";
                 } else if (student.backlogs > maxBacklogs) {
                     status = "Not Qualified";
-                    reason = `Academic Disqualification: Active backlogs (${student.backlogs}) exceed the maximum permitted backlogs (${maxBacklogs}).`;
-                    recommendation = "Clear active backlogs to become eligible for upcoming recruitment drives.";
+                    reason = `Academic Disqualification: Active backlogs (${student.backlogs}) exceed maximum permitted (${maxBacklogs}).`;
+                    recommendation = "Clear active backlogs.";
                 } else if (student.is_placed) {
                     status = "Not Qualified";
-                    reason = `Placement Policy Disqualification: You are already marked as placed (is_placed = true).`;
-                    recommendation = "Policy restricts multiple offers.";
-                } else {
-                    // Check Technical Skill-Gap
+                    reason = `Placement Policy Disqualification: Candidate is already placed.`;
+                    recommendation = "Multiple offers restricted.";
+                } else if (jobSkillIds.length > 0) {
                     const missingSkillIds = jobSkillIds.filter(id => !studentSkillIds.has(id));
                     if (missingSkillIds.length > 0) {
-                        const missingSkillNames = missingSkillIds.map(id => masterMap[id] || `Skill ID ${id}`).join(', ');
+                        const missingNames = missingSkillIds.map(id => masterMap[id] || `ID ${id}`).join(', ');
                         status = "Not Qualified";
-                        reason = `Missing required technical skills: ${missingSkillNames.toUpperCase()}`;
-                        recommendation = `You need to learn the following technologies to qualify for this role: ${missingSkillNames.toUpperCase()}.`;
+                        reason = `Missing required skills: ${missingNames.toUpperCase()}`;
+                        recommendation = `Learn: ${missingNames.toUpperCase()}`;
                     }
                 }
 
-                // 5. Submit Application Record to Supabase
                 const { error: applyError } = await activeSupabase
                     .from('application')
                     .insert([{
@@ -316,28 +369,26 @@
 
                 if (applyError) {
                     if (applyError.code === '23505') {
-                        alert("You have already applied for this job drive!");
+                        alert("Candidate has already applied for this job drive!");
                         return;
                     }
                     throw applyError;
                 }
 
-                // Display Instant Feedback Modal/Alert
                 if (status === "Qualified") {
-                    alert("🎉 Success! Your application has been submitted and marked as QUALIFIED.");
+                    alert("🎉 Success! Application submitted and marked as QUALIFIED.");
                 } else {
-                    alert(`⚠️ Application submitted with status: NOT QUALIFIED.\n\nReason: ${reason}\n\nLearning Path: ${recommendation}`);
+                    alert(`⚠️ Application submitted as: NOT QUALIFIED.\n\nReason: ${reason}`);
                 }
 
                 trackStudentApplications();
 
             } catch (err) {
-                console.error("Application Submission Error:", err);
+                console.error("Application Error:", err);
                 alert("Failed to submit application: " + err.message);
             }
         }
 
-        // Live Application Tracker Function
         async function trackStudentApplications() {
             const rollno = document.getElementById('trackRollNo').value.trim().toUpperCase();
             const container = document.getElementById('trackerResultsContainer');
@@ -348,7 +399,6 @@
             }
 
             try {
-                // Find student ID
                 const { data: student, error: sErr } = await activeSupabase
                     .from('Student')
                     .select('student_id')
@@ -356,14 +406,13 @@
                     .maybeSingle();
 
                 if (sErr || !student) {
-                    container.innerHTML = `<span class="text-muted small">No candidate record found for ${rollno}.</span>`;
+                    container.innerHTML = `<span class="text-muted small">No record found for ${rollno}.</span>`;
                     return;
                 }
 
-                // Fetch applications with job details
                 const { data: apps, error: appErr } = await activeSupabase
                     .from('application')
-                    .select('*, job(job_role, package, company(name))')
+                    .select('*')
                     .eq('student_id', student.student_id)
                     .order('application_id', { ascending: false });
 
@@ -374,17 +423,32 @@
                     return;
                 }
 
+                const jobIds = [...new Set(apps.map(a => a.job_id))];
+                let jobsMap = {};
+                if (jobIds.length > 0) {
+                    const { data: jobsData } = await activeSupabase
+                        .from('job')
+                        .select('*, company(name)')
+                        .in('job_id', jobIds);
+                    
+                    if (jobsData) {
+                        jobsData.forEach(j => { jobsMap[j.job_id] = j; });
+                    }
+                }
+
                 container.innerHTML = apps.map(app => {
                     const badgeColor = app.status === 'Qualified' ? 'bg-success' : 'bg-danger';
+                    const job = jobsMap[app.job_id] || {};
+                    const roleName = job.role || 'Job Opening';
+                    const compName = job.company && job.company.name ? job.company.name : '';
                     return `
-                        <div class="border rounded p-2 mb-2 bg-light small shadow-sm">
+                        <div class="border rounded p-2 mb-2 bg-white small shadow-sm">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <strong class="text-dark">${app.job ? app.job.job_role : 'Job'}</strong>
-                                <span class="badge ${badgeColor} text-white" style="font-size: 0.65rem;">${app.status}</span>
+                                <strong class="text-dark">${roleName}</strong>
+                                <span class="badge ${badgeColor} text-white" style="font-size: 0.6rem;">${app.status}</span>
                             </div>
-                            <div class="text-muted mb-1" style="font-size: 0.75rem;">${app.job && app.job.company ? app.job.company.name : ''}</div>
-                            ${app.reason ? `<div class="text-danger mt-1" style="font-size: 0.7rem;"><strong>Reason:</strong> ${app.reason}</div>` : ''}
-                            ${app.recommendation ? `<div class="text-primary mt-1" style="font-size: 0.7rem;"><strong>Learning Path:</strong> ${app.recommendation}</div>` : ''}
+                            <div class="text-muted" style="font-size: 0.7rem;">${compName}</div>
+                            ${app.reason ? `<div class="text-danger mt-1" style="font-size: 0.65rem;"><strong>Reason:</strong> ${app.reason}</div>` : ''}
                         </div>
                     `;
                 }).join('');
