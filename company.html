@@ -145,7 +145,7 @@
     <!-- Candidate Applications Review Table -->
     <div class="card card-custom">
       <div class="card-header card-header-table py-3 d-flex justify-content-between align-items-center">
-        <span><i class="fa-solid fa-user-check me-2"></i>Review Received Candidate Applications</span>
+        <span><i class="fa-solid fa-user-check me-2"></i>Review Received Candidate Applications (Last 3 Days)</span>
         <div>
           <button onclick="exportTableToCSV('recruiter_applications.csv')" class="btn btn-sm btn-success me-2">
             <i class="fa-solid fa-file-excel me-1"></i> Export CSV
@@ -183,7 +183,7 @@
 
   <script>
     const SUPABASE_URL = 'https://sicspfdnqjdsxlnhrijx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpY3NwZmRucWpkc3hsbmhyaWp4Iiwicm9sZSI6InFub24iLCJpYXQiOjE3OTAyNTY0ODEsImV4cCI6MjEwNTgzMjQ4MX0.iyY6f64NVTlrwmTRFYte21LKjVuQwI4unF8N_KT7-5M';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -246,6 +246,7 @@
 
     async function loadMasterSkills() {
       try {
+        // Fixed: changed from 'skills' (plural) to 'skill' (singular) to match database table name
         const { data, error } = await supabaseClient
           .from('skill')
           .select('*')
@@ -371,10 +372,39 @@
           return;
         }
 
+        // 3-day rolling window threshold
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
         let htmlRows = '';
+        let displayedCount = 0;
+        let lastDateFormatted = '';
+
         apps.forEach(app => {
+          const appDate = app.created_at ? new Date(app.created_at) : new Date();
+          
+          // Drop out applications older than 3 days
+          if (app.created_at && appDate < threeDaysAgo) {
+            return; 
+          }
+
+          displayedCount++;
           const student = students.find(s => s.student_id === app.student_id) || {};
           const job = jobs.find(j => j.job_id === app.job_id) || {};
+
+          // Format application date to display calendar day header at top
+          const dateFormatted = appDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+          if (dateFormatted !== lastDateFormatted) {
+            lastDateFormatted = dateFormatted;
+            htmlRows += `
+              <tr class="table-secondary fw-bold text-dark">
+                <td colspan="6" class="py-2 px-3 text-uppercase small">
+                  <i class="fa-solid fa-calendar-day me-2 text-primary"></i>${dateFormatted}
+                </td>
+              </tr>
+            `;
+          }
 
           let badgeClass = 'bg-info text-dark';
           if (app.status === 'Qualified') badgeClass = 'bg-success';
@@ -400,7 +430,12 @@
           `;
         });
 
-        tableBody.innerHTML = htmlRows;
+        if (displayedCount === 0) {
+          tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No recent applications found within the last 3 days.</td></tr>';
+        } else {
+          tableBody.innerHTML = htmlRows;
+        }
+
       } catch (err) {
         console.error("Recruiter Applications Error:", err);
         tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error loading records: ${err.message}</td></tr>`;
