@@ -423,6 +423,7 @@
               <td><span class="badge bg-secondary">${student.cgpa || 'N/A'}</span></td>
               <td><span class="badge ${badgeClass}">${app.status || 'Applied'}</span>${extraInfo}</td>
               <td class="text-end pe-3">
+                <button onclick="updateApplicationStatus(${app.application_id}, 'Shortlisted')" class="btn btn-sm btn-warning me-1">Shortlist</button>
                 <button onclick="updateApplicationStatus(${app.application_id}, 'Qualified')" class="btn btn-sm btn-success me-1">Approve</button>
                 <button onclick="updateApplicationStatus(${app.application_id}, 'Not Qualified')" class="btn btn-sm btn-outline-danger">Reject</button>
               </td>
