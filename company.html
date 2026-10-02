@@ -247,7 +247,7 @@
     async function loadMasterSkills() {
       try {
         const { data, error } = await supabaseClient
-          .from('skills')
+          .from('skill')
           .select('*')
           .order('skill_name', { ascending: true });
 
